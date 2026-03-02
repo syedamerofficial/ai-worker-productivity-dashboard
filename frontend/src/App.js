@@ -1,13 +1,18 @@
-const [loading, setLoading] = useState(true);
+import React from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+function App() {
+  const [workers, setWorkers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchWorkers = async () => {
+    async function fetchWorkers() {
       try {
         const res = await axios.get(
           "https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers"
         );
-
         console.log("API DATA:", res.data);
         setWorkers(res.data);
       } catch (err) {
@@ -16,14 +21,14 @@ const [loading, setLoading] = useState(true);
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchWorkers();
   }, []);
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Factory Productivity Dashboard v2</h1>
+      <h1>Factory Productivity Dashboard v3</h1>
 
       <table border="1" cellPadding="8">
         <thead>
@@ -38,21 +43,22 @@ const [loading, setLoading] = useState(true);
         </thead>
 
         <tbody>
-          {loading ? (
+          {loading && (
             <tr>
               <td colSpan="6">Loading...</td>
             </tr>
-          ) : error ? (
+          )}
+
+          {!loading && error && (
             <tr>
               <td colSpan="6" style={{ color: "red" }}>
                 {error}
               </td>
             </tr>
-          ) : workers.length === 0 ? (
-            <tr>
-              <td colSpan="6">No data found</td>
-            </tr>
-          ) : (
+          )}
+
+          {!loading &&
+            !error &&
             workers.map((w) => (
               <tr key={w.worker_id}>
                 <td>{w.worker_id}</td>
@@ -62,10 +68,11 @@ const [loading, setLoading] = useState(true);
                 <td>{w.units_produced}</td>
                 <td>{w.units_per_hour}</td>
               </tr>
-            ))
-          )}
+            ))}
         </tbody>
       </table>
     </div>
   );
 }
+
+export default App;
