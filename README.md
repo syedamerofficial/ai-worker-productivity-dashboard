@@ -140,21 +140,10 @@ Data → Validation → Training → Evaluation → Deployment → Monitoring
 
 ---
 
-## 🐳 Running Locally
 
-```bash
-docker-compose up --build
-```
-
-Backend: http://localhost:8000  
-Frontend: http://localhost:3000  
-
----
 
 ## 🌐 Live Demo
-
-Frontend: https://ai-worker-productivity-dashboard-lilac.vercel.app  
-Backend: https://ai-worker-dashboard-b6tl.onrender.com 
+https://ai-worker-productivity-dashboard-lilac.vercel.app/?_vercel_share=xzGi2Zcs3lx0HX1FT5gDWrKOSlrYij38
 
 ---
 
