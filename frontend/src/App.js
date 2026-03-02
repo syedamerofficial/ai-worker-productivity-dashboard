@@ -1,20 +1,27 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-export default function App() {
+function App() {
   const [workers, setWorkers] = useState([]);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(
+          "https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers"
+        );
+        console.log("API data:", res.data); // debug
+        setWorkers(res.data);
+      } catch (err) {
+        console.error("Error fetching workers:", err);
+      }
+    };
+
     fetchData();
   }, []);
 
-  const fetchData = async () => {
-const res = await axios.get("https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers");
-    setWorkers(res.data);
-  };
-
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: "20px" }}>
       <h1>Factory Productivity Dashboard</h1>
 
       <table border="1" cellPadding="8">
@@ -28,6 +35,7 @@ const res = await axios.get("https://ai-worker-dashboard-b6tl.onrender.com/metri
             <th>Units/hr</th>
           </tr>
         </thead>
+
         <tbody>
           {workers.map((w) => (
             <tr key={w.worker_id}>
@@ -44,3 +52,5 @@ const res = await axios.get("https://ai-worker-dashboard-b6tl.onrender.com/metri
     </div>
   );
 }
+
+export default App;
