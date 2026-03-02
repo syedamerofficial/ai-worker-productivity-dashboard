@@ -4,14 +4,16 @@ from .models import Worker, Workstation, Event
 
 
 def seed_database(db: Session):
-    # clear old data
+    # -----------------------------
+    # Clear old data safely
+    # -----------------------------
     db.query(Event).delete()
     db.query(Worker).delete()
     db.query(Workstation).delete()
     db.commit()
 
     # -----------------------------
-    # Workers
+    # Create workers
     # -----------------------------
     workers = [
         Worker(worker_id="W1", name="Amit"),
@@ -23,7 +25,7 @@ def seed_database(db: Session):
     ]
 
     # -----------------------------
-    # Workstations
+    # Create stations
     # -----------------------------
     stations = [
         Workstation(station_id="S1", name="Assembly"),
@@ -34,7 +36,8 @@ def seed_database(db: Session):
         Workstation(station_id="S6", name="Dispatch"),
     ]
 
-    db.add_all(workers + stations)
+    db.add_all(workers)
+    db.add_all(stations)
     db.commit()
 
     # -----------------------------
@@ -49,7 +52,7 @@ def seed_database(db: Session):
         "W6": (110, 25, 12),
     }
 
-    base_time = datetime.utcnow()
+    base_time = datetime.now()  # safer than utcnow on SQLite
     events = []
 
     for idx, (wid, (active, idle, units)) in enumerate(patterns.items()):
