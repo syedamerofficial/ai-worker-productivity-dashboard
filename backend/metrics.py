@@ -5,7 +5,7 @@ from .models import Event
 def compute_worker_metrics(db):
     events = db.query(Event).order_by(Event.worker_id, Event.timestamp).all()
 
-    # ⭐ SAFETY GUARD (must be inside function)
+    # ✅ safety guard
     if not events:
         return []
 
@@ -13,7 +13,7 @@ def compute_worker_metrics(db):
         lambda: {"active": 0, "idle": 0, "units": 0}
     )
 
-    # ⭐ ensure workers initialized
+    # ✅ ensure workers initialized
     for e in events:
         _ = worker_stats[e.worker_id]
 
@@ -34,7 +34,7 @@ def compute_worker_metrics(db):
         elif curr.event_type == "idle":
             worker_stats[curr.worker_id]["idle"] += duration
 
-    # ⭐ count production
+    # ✅ ALWAYS count product events
     for e in events:
         if e.event_type == "product_count":
             worker_stats[e.worker_id]["units"] += e.count or 0
