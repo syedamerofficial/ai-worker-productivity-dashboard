@@ -1,24 +1,29 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-
-export default function App() {
-  const [workers, setWorkers] = useState([]);
+const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    axios
-      .get("https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers")
-      .then((res) => {
-        console.log("DATA:", res.data);
+    const fetchWorkers = async () => {
+      try {
+        const res = await axios.get(
+          "https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers"
+        );
+
+        console.log("API DATA:", res.data);
         setWorkers(res.data);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("FETCH ERROR:", err);
-      });
+        setError("Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkers();
   }, []);
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Factory Productivity Dashboard</h1>
+      <h1>Factory Productivity Dashboard v2</h1>
 
       <table border="1" cellPadding="8">
         <thead>
@@ -33,9 +38,19 @@ export default function App() {
         </thead>
 
         <tbody>
-          {workers.length === 0 ? (
+          {loading ? (
             <tr>
               <td colSpan="6">Loading...</td>
+            </tr>
+          ) : error ? (
+            <tr>
+              <td colSpan="6" style={{ color: "red" }}>
+                {error}
+              </td>
+            </tr>
+          ) : workers.length === 0 ? (
+            <tr>
+              <td colSpan="6">No data found</td>
             </tr>
           ) : (
             workers.map((w) => (
