@@ -4,42 +4,41 @@ from .models import Worker, Workstation, Event
 
 
 def seed_database(db: Session):
-    # 🔹 Clear existing events (so reseed works cleanly)
+    # clear old data
     db.query(Event).delete()
     db.query(Worker).delete()
     db.query(Workstation).delete()
     db.commit()
 
     # -----------------------------
-    # Create Workers
+    # Workers
     # -----------------------------
     workers = [
-        Worker(id="W1", name="Amit"),
-        Worker(id="W2", name="Ravi"),
-        Worker(id="W3", name="Sara"),
-        Worker(id="W4", name="John"),
-        Worker(id="W5", name="Neha"),
-        Worker(id="W6", name="Imran"),
+        Worker(worker_id="W1", name="Amit"),
+        Worker(worker_id="W2", name="Ravi"),
+        Worker(worker_id="W3", name="Sara"),
+        Worker(worker_id="W4", name="John"),
+        Worker(worker_id="W5", name="Neha"),
+        Worker(worker_id="W6", name="Imran"),
     ]
 
     # -----------------------------
-    # Create Workstations
+    # Workstations
     # -----------------------------
     stations = [
-        Workstation(id="S1", name="Assembly"),
-        Workstation(id="S2", name="Packaging"),
-        Workstation(id="S3", name="Quality"),
-        Workstation(id="S4", name="Labeling"),
-        Workstation(id="S5", name="Inspection"),
-        Workstation(id="S6", name="Dispatch"),
+        Workstation(station_id="S1", name="Assembly"),
+        Workstation(station_id="S2", name="Packaging"),
+        Workstation(station_id="S3", name="Quality"),
+        Workstation(station_id="S4", name="Labeling"),
+        Workstation(station_id="S5", name="Inspection"),
+        Workstation(station_id="S6", name="Dispatch"),
     ]
 
     db.add_all(workers + stations)
     db.commit()
 
     # -----------------------------
-    # Realistic worker patterns
-    # (active_sec, idle_sec, units)
+    # realistic patterns
     # -----------------------------
     patterns = {
         "W1": (60, 30, 10),
@@ -51,46 +50,42 @@ def seed_database(db: Session):
     }
 
     base_time = datetime.utcnow()
-
     events = []
 
     for idx, (wid, (active, idle, units)) in enumerate(patterns.items()):
-        station_id = f"S{idx+1}"
+        sid = f"S{idx+1}"
         t0 = base_time + timedelta(minutes=idx * 5)
 
-        # working start
         events.append(
             Event(
                 id=f"{wid}_working",
                 timestamp=t0,
                 worker_id=wid,
-                workstation_id=station_id,
+                workstation_id=sid,
                 event_type="working",
                 confidence=0.95,
                 count=1,
             )
         )
 
-        # idle event
         events.append(
             Event(
                 id=f"{wid}_idle",
                 timestamp=t0 + timedelta(seconds=active),
                 worker_id=wid,
-                workstation_id=station_id,
+                workstation_id=sid,
                 event_type="idle",
                 confidence=0.92,
                 count=1,
             )
         )
 
-        # production event
         events.append(
             Event(
                 id=f"{wid}_prod",
                 timestamp=t0 + timedelta(seconds=active + idle),
                 worker_id=wid,
-                workstation_id=station_id,
+                workstation_id=sid,
                 event_type="product_count",
                 confidence=0.97,
                 count=units,
