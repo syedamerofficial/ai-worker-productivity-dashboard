@@ -1,6 +1,9 @@
 def compute_worker_metrics(db):
     events = db.query(Event).order_by(Event.worker_id, Event.timestamp).all()
 
+# ⭐ SAFETY GUARD (VERY IMPORTANT)
+if not events:
+    return []
     worker_stats = defaultdict(
         lambda: {"active": 0, "idle": 0, "units": 0}
     )
