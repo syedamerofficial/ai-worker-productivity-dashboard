@@ -1,7 +1,3 @@
-from collections import defaultdict
-from .models import Event
-
-
 def compute_worker_metrics(db):
     events = db.query(Event).order_by(Event.worker_id, Event.timestamp).all()
 
@@ -9,8 +5,12 @@ def compute_worker_metrics(db):
         lambda: {"active": 0, "idle": 0, "units": 0}
     )
 
+    # ⭐ ensure workers are initialized
+    for e in events:
+        _ = worker_stats[e.worker_id]
+
     # -----------------------------
-    # time calculation (pairwise)
+    # time calculation
     # -----------------------------
     for i in range(len(events) - 1):
         curr = events[i]
@@ -26,7 +26,7 @@ def compute_worker_metrics(db):
         elif curr.event_type == "idle":
             worker_stats[curr.worker_id]["idle"] += duration
 
-    # ⭐ IMPORTANT FIX — count ALL product events
+    # ⭐ ALWAYS count product events (critical fix)
     for e in events:
         if e.event_type == "product_count":
             worker_stats[e.worker_id]["units"] += e.count or 0
