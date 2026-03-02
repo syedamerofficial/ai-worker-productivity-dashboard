@@ -1,23 +1,19 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-function App() {
+export default function App() {
   const [workers, setWorkers] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get(
-          "https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers"
-        );
-        console.log("API data:", res.data); // debug
+    axios
+      .get("https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers")
+      .then((res) => {
+        console.log("DATA:", res.data);
         setWorkers(res.data);
-      } catch (err) {
-        console.error("Error fetching workers:", err);
-      }
-    };
-
-    fetchData();
+      })
+      .catch((err) => {
+        console.error("FETCH ERROR:", err);
+      });
   }, []);
 
   return (
@@ -37,20 +33,24 @@ function App() {
         </thead>
 
         <tbody>
-          {workers.map((w) => (
-            <tr key={w.worker_id}>
-              <td>{w.worker_id}</td>
-              <td>{w.active_time_sec}</td>
-              <td>{w.idle_time_sec}</td>
-              <td>{w.utilization_pct}</td>
-              <td>{w.units_produced}</td>
-              <td>{w.units_per_hour}</td>
+          {workers.length === 0 ? (
+            <tr>
+              <td colSpan="6">Loading...</td>
             </tr>
-          ))}
+          ) : (
+            workers.map((w) => (
+              <tr key={w.worker_id}>
+                <td>{w.worker_id}</td>
+                <td>{w.active_time_sec}</td>
+                <td>{w.idle_time_sec}</td>
+                <td>{w.utilization_pct}</td>
+                <td>{w.units_produced}</td>
+                <td>{w.units_per_hour}</td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>
   );
 }
-
-export default App;
