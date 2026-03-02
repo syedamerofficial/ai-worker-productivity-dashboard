@@ -9,6 +9,9 @@ def compute_worker_metrics(db):
         lambda: {"active": 0, "idle": 0, "units": 0}
     )
 
+    # -----------------------------
+    # time calculation (pairwise)
+    # -----------------------------
     for i in range(len(events) - 1):
         curr = events[i]
         nxt = events[i + 1]
@@ -23,9 +26,14 @@ def compute_worker_metrics(db):
         elif curr.event_type == "idle":
             worker_stats[curr.worker_id]["idle"] += duration
 
-        if curr.event_type == "product_count":
-            worker_stats[curr.worker_id]["units"] += curr.count
+    # ⭐ IMPORTANT FIX — count ALL product events
+    for e in events:
+        if e.event_type == "product_count":
+            worker_stats[e.worker_id]["units"] += e.count or 0
 
+    # -----------------------------
+    # build results
+    # -----------------------------
     results = []
     for wid, s in worker_stats.items():
         total = s["active"] + s["idle"]
