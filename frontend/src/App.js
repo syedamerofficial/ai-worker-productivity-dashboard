@@ -9,7 +9,7 @@ export default function App() {
   }, []);
 
   const fetchData = async () => {
-    const res = await axios.get("http://localhost:8000/metrics/workers");
+const res = await axios.get("https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers");
     setWorkers(res.data);
   };
 
