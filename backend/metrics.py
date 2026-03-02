@@ -1,14 +1,19 @@
+from collections import defaultdict
+from .models import Event
+
+
 def compute_worker_metrics(db):
     events = db.query(Event).order_by(Event.worker_id, Event.timestamp).all()
 
-# ⭐ SAFETY GUARD (VERY IMPORTANT)
-if not events:
-    return []
+    # ⭐ SAFETY GUARD (must be inside function)
+    if not events:
+        return []
+
     worker_stats = defaultdict(
         lambda: {"active": 0, "idle": 0, "units": 0}
     )
 
-    # ⭐ ensure workers are initialized
+    # ⭐ ensure workers initialized
     for e in events:
         _ = worker_stats[e.worker_id]
 
@@ -29,7 +34,7 @@ if not events:
         elif curr.event_type == "idle":
             worker_stats[curr.worker_id]["idle"] += duration
 
-    # ⭐ ALWAYS count product events (critical fix)
+    # ⭐ count production
     for e in events:
         if e.event_type == "product_count":
             worker_stats[e.worker_id]["units"] += e.count or 0
