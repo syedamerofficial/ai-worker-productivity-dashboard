@@ -7,31 +7,33 @@ function App() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchWorkers(retry = 0) {
-      try {
-        const res = await axios.get(
-          "https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers"
+  async function fetchWorkers(retry = 0) {
+    try {
+      const res = await axios.get(
+        "https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers"
+      );
+
+      setWorkers(res.data);
+      setError("");
+      setLoading(false);
+    } catch (err) {
+      console.log("Waiting for backend to wake up...");
+
+      if (retry < 8) {
+        setError("Backend is waking up... please wait.");
+        setTimeout(() => fetchWorkers(retry + 1), 5000);
+      } else {
+        setError(
+          "Backend took too long to respond. Please refresh the page."
         );
-
-        setWorkers(res.data);
-        setError("");
         setLoading(false);
-      } catch (err) {
-        console.log("Backend might be waking up...");
-
-        if (retry < 4) {
-          setTimeout(() => fetchWorkers(retry + 1), 4000);
-        } else {
-          setError(
-            "Backend is waking up (Render free tier). Please refresh in a few seconds."
-          );
-          setLoading(false);
-        }
       }
     }
+  }
 
-    fetchWorkers();
-  }, []);
+  fetchWorkers();
+}, []);
+     
 
   return (
     <div style={{ padding: "40px", fontFamily: "Arial" }}>
