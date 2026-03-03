@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import hashlib
 
@@ -8,18 +9,28 @@ from .schemas import EventIn
 from .metrics import compute_worker_metrics
 from .seed import seed_database
 
+# Create tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AI Worker Productivity Dashboard")
 
+# ✅ CORS (VERY IMPORTANT for Vercel frontend)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # allow all domains (safe for demo)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# ✅ AUTO-SEED ON STARTUP
+# ✅ Auto seed database on startup
 @app.on_event("startup")
 def auto_seed():
     db = next(get_db())
     seed_database(db)
 
 
+# Generate unique event ID
 def generate_event_id(event: EventIn):
     raw = (
         f"{event.timestamp}-{event.worker_id}-"
@@ -29,29 +40,30 @@ def generate_event_id(event: EventIn):
 
 
 # -------------------------------
-# ROUTES (YOU ACCIDENTALLY REMOVED THESE)
+# ROUTES
 # -------------------------------
 
 @app.post("/ingest")
 def ingest_event(event: EventIn, db: Session = Depends(get_db)):
-    eid = generate_event_id(event)
+    event_id = generate_event_id(event)
 
-    exists = db.query(Event).filter(Event.id == eid).first()
-    if exists:
+    existing = db.query(Event).filter(Event.id == event_id).first()
+    if existing:
         return {"status": "duplicate ignored"}
 
-    db.add(
-        Event(
-            id=eid,
-            timestamp=event.timestamp,
-            worker_id=event.worker_id,
-            workstation_id=event.workstation_id,
-            event_type=event.event_type,
-            confidence=event.confidence,
-            count=event.count,
-        )
+    new_event = Event(
+        id=event_id,
+        timestamp=event.timestamp,
+        worker_id=event.worker_id,
+        workstation_id=event.workstation_id,
+        event_type=event.event_type,
+        confidence=event.confidence,
+        count=event.count,
     )
+
+    db.add(new_event)
     db.commit()
+
     return {"status": "ingested"}
 
 
