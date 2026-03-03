@@ -7,7 +7,9 @@ function App() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-  async function fetchWorkers(retry = 0) {
+  let interval;
+
+  async function fetchWorkers() {
     try {
       const res = await axios.get(
         "https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers"
@@ -16,22 +18,21 @@ function App() {
       setWorkers(res.data);
       setError("");
       setLoading(false);
-    } catch (err) {
-      console.log("Waiting for backend to wake up...");
 
-      if (retry < 8) {
-        setError("Backend is waking up... please wait.");
-        setTimeout(() => fetchWorkers(retry + 1), 5000);
-      } else {
-        setError(
-          "Backend took too long to respond. Please refresh the page."
-        );
-        setLoading(false);
-      }
+      if (interval) clearInterval(interval);
+    } catch (err) {
+      setError("Backend is waking up... please wait.");
+      setLoading(false);
     }
   }
 
+  // Try immediately
   fetchWorkers();
+
+  // Then retry every 6 seconds until success
+  interval = setInterval(fetchWorkers, 6000);
+
+  return () => clearInterval(interval);
 }, []);
      
 
