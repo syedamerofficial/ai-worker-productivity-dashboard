@@ -1,5 +1,4 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 function App() {
@@ -8,18 +7,26 @@ function App() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchWorkers() {
+    async function fetchWorkers(retry = 0) {
       try {
         const res = await axios.get(
           "https://ai-worker-dashboard-b6tl.onrender.com/metrics/workers"
         );
-        console.log("API DATA:", res.data);
+
         setWorkers(res.data);
-      } catch (err) {
-        console.error("FETCH ERROR:", err);
-        setError("Failed to load data");
-      } finally {
+        setError("");
         setLoading(false);
+      } catch (err) {
+        console.log("Backend might be waking up...");
+
+        if (retry < 4) {
+          setTimeout(() => fetchWorkers(retry + 1), 4000);
+        } else {
+          setError(
+            "Backend is waking up (Render free tier). Please refresh in a few seconds."
+          );
+          setLoading(false);
+        }
       }
     }
 
@@ -27,11 +34,17 @@ function App() {
   }, []);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Factory Productivity Dashboard v3</h1>
+    <div style={{ padding: "40px", fontFamily: "Arial" }}>
+      <h1 style={{ marginBottom: "20px" }}>
+        Factory Productivity Dashboard v3
+      </h1>
 
-      <table border="1" cellPadding="8">
-        <thead>
+      <table
+        border="1"
+        cellPadding="10"
+        style={{ borderCollapse: "collapse", width: "100%" }}
+      >
+        <thead style={{ backgroundColor: "#f2f2f2" }}>
           <tr>
             <th>Worker</th>
             <th>Active (sec)</th>
@@ -45,13 +58,18 @@ function App() {
         <tbody>
           {loading && (
             <tr>
-              <td colSpan="6">Loading...</td>
+              <td colSpan="6" style={{ textAlign: "center" }}>
+                Loading data...
+              </td>
             </tr>
           )}
 
           {!loading && error && (
             <tr>
-              <td colSpan="6" style={{ color: "red" }}>
+              <td
+                colSpan="6"
+                style={{ color: "orange", textAlign: "center", fontWeight: "bold" }}
+              >
                 {error}
               </td>
             </tr>
